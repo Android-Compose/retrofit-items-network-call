@@ -63,6 +63,8 @@ dependencies {
     // retrofit
     implementation(libs.square.retrofit2)
     implementation(libs.retrofit.converter)
+    //viewModel compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
