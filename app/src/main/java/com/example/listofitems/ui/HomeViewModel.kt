@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.listofitems.data.Result
-
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -37,7 +36,6 @@ sealed interface ItemUiState{
     ): ItemUiState
 
 }
-
 
 
 class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
@@ -67,7 +65,7 @@ class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
                 when (result) {
                     is Result.Success -> {
                         Log.d("data", "getItems: ${result.data}")
-                        val items = filterItems(result.data)
+                        val items = filterItems()
                         uiState.copy(items = items, loading = false)
                     }
                     is Result.Error -> {
@@ -80,8 +78,8 @@ class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
         }
     }
 
-    private fun filterItems(items: List<Item>): List<Item> {
-        return items.filter { item ->
+    private fun filterItems(): List<Item> {
+        return _uiState.value.items.filter { item ->
             item.name != null && item.name != ""
         }.sortedBy { it.listId }
 
@@ -97,12 +95,6 @@ class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
         }
     }
 }
-
-//data class HomeUiState(
-//    var loading: Boolean = false,
-//    val items: List<Item> = emptyList(),
-//    val errorMessage : String =""
-//)
 
 data class HomeUiState(
     var loading: Boolean = false,
@@ -124,5 +116,10 @@ data class HomeUiState(
         }
 
 }
+//data class HomeUiState(
+//    var loading: Boolean = false,
+//    val items: List<Item> = emptyList(),
+//    val errorMessage : String =""
+//)
 
 

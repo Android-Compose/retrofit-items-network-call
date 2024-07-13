@@ -1,5 +1,6 @@
 package com.example.listofitems.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -69,10 +70,16 @@ fun HomeWithContent(
 
                     }
                     is ItemUiState.HasNoItems -> {
-                       ErrorScreen(
-                           errorMessage = uiState.errorMessage,
-                           retryAction = retryAction
-                       )
+                        if(uiState.errorMessage.isNotEmpty()) {
+                            Log.d("error", "there is an error: ${uiState.errorMessage}")
+                            ErrorScreen(
+                                errorMessage = uiState.errorMessage,
+                                retryAction = retryAction
+                            )
+                        } else {
+                            Log.d("error", "there is no error: ${uiState.errorMessage}")
+                        }
+
                     }
                 }
             }

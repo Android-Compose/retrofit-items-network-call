@@ -28,7 +28,7 @@ fun ErrorScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_connection_error),
-            contentDescription = ""
+            contentDescription = null
         )
         Text(text = errorMessage, modifier = Modifier.padding(16.dp))
         Button(onClick =  retryAction ) {
@@ -36,30 +36,3 @@ fun ErrorScreen(
         }
     }
 }
-
-//@Composable
-//fun ShowError(errorMessage: String) {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        verticalArrangement= Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Icon(
-//            imageVector = Icons.Filled.Error,
-//            contentDescription = "Error",
-//            tint = Color.Red,
-//            modifier = Modifier.size(48.dp))
-//        Spacer(modifier = Modifier.height(16.dp))
-//        Text(
-//            text = "Oops! Something went wrong.",
-//            style = MaterialTheme.typography.h6,
-//            color = Color.Red
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Text(
-//            text = errorMessage,
-//            style = MaterialTheme.typography.body1
-//        )
-//        // You can add a "Retry" button or other actions here if needed
-//    }
-//}

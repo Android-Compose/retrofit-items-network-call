@@ -1,13 +1,12 @@
 package com.example.listofitems.data
 
-
-import android.net.http.HttpException
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresExtension
 import com.example.listofitems.model.Item
 import com.example.listofitems.network.HomeApiService
-import java.lang.IllegalArgumentException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 
 
 interface HomeRepository {
@@ -17,24 +16,26 @@ interface HomeRepository {
 
 
 class DefaultHomeRepository(private val apiService : HomeApiService) : HomeRepository {
-
-    @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
     override suspend fun getItems(): Result<List<Item>> {
-        // response return a value create asynchronously from the apiService
-        val response = apiService.getItems()
         // check if the response is successful
-        return try {
-            if(response.isSuccessful) {
+        return withContext(Dispatchers.IO) {
+            try {
+                // response return a value create asynchronously from the apiService
+                val response = apiService.getItems()
                 // if successful, return the body
-                Result.Success(response.body()!!)
-            } else {
-                Log.d("error", "errorGetItems: ${retrofit2.HttpException(response)}")
-                // if not successful, return an error
-                Result.Error(retrofit2.HttpException(response))
+                if(response.isSuccessful) {
+                    Result.Success(response.body() ?: emptyList())
+                } else {
+                    Log.d("error", "errorGetItems: ${HttpException(response)}")
+                    // if not successful, return an error
+                    Result.Error(HttpException(response))
+                }
+            } catch(io : IOException) {
+                Log.d("ioException", "IoExceptionGetItems: $io")
+                Result.Error(io)
+            } catch(exception: Exception) { Log.d("exception", "exceptionGetItems: $exception")
+                Result.Error(exception)
             }
-        } catch(exception: Exception) {
-            Log.d("exception", "exceptionGetItems: $exception")
-            Result.Error(exception)
         }
     }
 }
