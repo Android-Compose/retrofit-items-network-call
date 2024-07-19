@@ -3,4 +3,5 @@
     <string name="top_bar_title">Items</string>
     <string name="loading_failed">Failed to load</string>
     <string name="retry">Retry</string>
+    <string name="tap_to_load_content">Tap to load data</string>
 </resources>

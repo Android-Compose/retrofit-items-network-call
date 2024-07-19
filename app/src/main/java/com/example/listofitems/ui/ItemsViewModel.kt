@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.listofitems.HomeApplication
-import com.example.listofitems.data.HomeRepository
+import com.example.listofitems.ItemsApplication
+import com.example.listofitems.data.ItemsRepository
 import com.example.listofitems.model.Item
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +17,7 @@ import com.example.listofitems.data.Result
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.io.IOException
 
 
 // this interface  set the status of the data coming from the remote server
@@ -38,10 +39,9 @@ sealed interface ItemUiState{
 }
 
 
-class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
+class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
-    private var _uiState = MutableStateFlow(HomeUiState( loading = true))
-//    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private var _uiState = MutableStateFlow(HomeUiState())
 
     val uiState: StateFlow<ItemUiState> = _uiState.map(HomeUiState::toItemUiState)
         .stateIn(
@@ -54,72 +54,85 @@ class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
         getItems()
     }
 
+    fun getItems() {
 
-    private fun getItems() {
-        _uiState.value.loading = true
+        _uiState.update { it.copy(isLoading = true) }
+
         viewModelScope.launch {
             val result = repository.getItems()
             _uiState.update { uiState ->
-
-                Log.d("hasNoItems", "HasNoError: ${uiState.errorMessage}")
                 when (result) {
                     is Result.Success -> {
+                        Log.d("Error In result.success ", " Error: ${uiState.errorMessage}")
                         Log.d("data", "getItems: ${result.data}")
-                        val items = filterItems()
-                        uiState.copy(items = items, loading = false)
+                        val items = filterItems(result.data)
+                        uiState.copy(items = items, isLoading = false)
                     }
                     is Result.Error -> {
-                        Log.d("error", "error: ${uiState.errorMessage}")
-                        val error = result.exception.message ?: "Failed to load data"
-                        uiState.copy(errorMessage = error, loading = false)
+                        if( result.exception is IOException) {
+                            Log.d("Error in result.error", "Error: ${uiState.errorMessage}")
+                            val error = "No internet connection, please try again"
+                            uiState.copy(errorMessage = error, isLoading = false)
+                        } else {
+                            val error = "Failed to load data"
+                            uiState.copy(errorMessage = error, isLoading = false)
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun filterItems(): List<Item> {
-        return _uiState.value.items.filter { item ->
+    fun updateErrorMessage() {
+        _uiState.update {
+            it.copy(errorMessage = "")
+        }
+    }
+
+    private fun filterItems(items: List<Item>): List<Item> {
+        return items.filter { item ->
             item.name != null && item.name != ""
         }.sortedBy { it.listId }
-
     }
+
+//    private fun filterItems(): List<Item> {
+//        return _uiState.value.items.filter { item ->
+//            item.name != null && item.name != ""
+//        }.sortedBy { it.listId }
+//    }
+
     // Factory for PostViewModel that takes repository as a dependency
     companion object {
         val Factory : ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HomeApplication)
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as ItemsApplication)
                 val repository = application.container.repository
-                HomeViewModel(repository = repository)
+                ItemsViewModel(repository = repository)
             }
         }
     }
 }
 
 data class HomeUiState(
-    var loading: Boolean = false,
+    var isLoading: Boolean = false,
     val items: List<Item> = emptyList(),
     val errorMessage: String? = null
 ) {
     fun toItemUiState() : ItemUiState =
         if(items.isEmpty()) {
             ItemUiState.HasNoItems(
-                loading = loading,
-                errorMessage = errorMessage ?: "Failed to load data"
+                loading = isLoading,
+                errorMessage = errorMessage ?: ""
             )
         } else {
             ItemUiState.HasItems(
                 items = items,
-                loading = loading,
+                loading = isLoading,
                 errorMessage = errorMessage ?:""
             )
         }
 
 }
-//data class HomeUiState(
-//    var loading: Boolean = false,
-//    val items: List<Item> = emptyList(),
-//    val errorMessage : String =""
-//)
+
 
 

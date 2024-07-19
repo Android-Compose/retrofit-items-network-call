@@ -1,12 +1,12 @@
 package com.example.listofitems.data
 
 import com.example.listofitems.BASE_URL
-import com.example.listofitems.network.HomeApiService
+import com.example.listofitems.network.ItemApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 interface AppContainer {
-    val repository: HomeRepository
+    val repository: ItemsRepository
 }
 
 
@@ -22,11 +22,11 @@ class DefaultAppContainer : AppContainer {
     /**
      * Retrofit service object for creating api calls
      */
-    private val retrofitService: HomeApiService by lazy {
-        retrofit.create(HomeApiService::class.java)
+    private val retrofitService: ItemApiService by lazy {
+        retrofit.create(ItemApiService::class.java)
 
     }
     // Data injection for home Repository
-    override val repository: HomeRepository
-        get() = DefaultHomeRepository(retrofitService)
+    override val repository: ItemsRepository
+        get() = NetWorkItemsRepository(retrofitService)
 }

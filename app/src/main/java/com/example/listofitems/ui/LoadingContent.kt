@@ -1,5 +1,6 @@
 package com.example.listofitems.ui
 
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +19,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun LoadingContent(
     isEmpty: Boolean,
-    onPullRefresh: () -> Unit,
+    onRefresh: () -> Unit,
     screenLoading: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -26,9 +27,9 @@ fun LoadingContent(
         screenLoading()
     } else{
         PullToRefreshBox(
-            onPullRefresh = onPullRefresh,
+            onPullRefresh = onRefresh,
             state = rememberPullToRefreshState(),
-            content = content,
+            content = content
         )
     }
 }

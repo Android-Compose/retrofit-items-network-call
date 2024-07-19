@@ -33,6 +33,7 @@ square-retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", versio
 retrofit-converter = {group = "com.squareup.retrofit2", name = "converter-gson", version.ref="retrofitConverter"}
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
