@@ -36,7 +36,6 @@ class ItemsInstrumentedTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-
     @Test
     fun testLazyColumnExistsAfterDataFetch() =
         runTest {
@@ -48,7 +47,13 @@ class ItemsInstrumentedTest {
             composeTestRule.awaitIdle()
             composeTestRule.onNodeWithText("Name").assertIsDisplayed()
         }
+
+//    @Test
+//    fun testRowHasTwoText() {
+//        composeTestRule.setContent {
+//            ListOfItemsTheme {
+//                ItemsScreen()
+//            }
+//        }
+//    }
 }
-
-
-
