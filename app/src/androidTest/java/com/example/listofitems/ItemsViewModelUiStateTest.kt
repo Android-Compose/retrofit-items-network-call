@@ -24,12 +24,13 @@ class ItemsViewModelUiStateTest {
             val viewModel = ItemsViewModel(repository = FakeNetworkItemsRepository())
 
             val uiState = viewModel.uiState.value
-            println("viewModel" + viewModel.uiState)
-            println("uiStateItems" + "${(uiState as ItemUiState.HasItems).items}")
+            check(uiState is ItemUiState.HasItems)
+
             assertEquals(FakeDataSource.itemList, uiState.items)
             assertFalse(uiState.loading)
             assertEquals("", uiState.errorMessage)
         }
+
     @Test
     fun itemsViewModel_handling_error() =
         runTest {
@@ -37,6 +38,6 @@ class ItemsViewModelUiStateTest {
 
             val uiState = viewModel.uiState.value
             val exception = Exception("Failed to load data")
-            assertEquals("Network error", uiState.errorMessage) // Check error message
+            assertEquals("Failed to load data", uiState.errorMessage) // Check error message
         }
 }

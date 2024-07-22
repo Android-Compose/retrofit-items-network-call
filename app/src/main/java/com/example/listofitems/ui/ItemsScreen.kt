@@ -30,7 +30,9 @@ import com.example.listofitems.components.HomeTopBar
 import com.example.listofitems.components.ScreenLoading
 import com.example.listofitems.model.Item
 
-
+/**
+ * this composable launches the application
+ */
 @Composable
 fun ItemsScreen() {
     val viewModel: ItemsViewModel = viewModel(factory = ItemsViewModel.Factory)
@@ -42,9 +44,11 @@ fun ItemsScreen() {
         retryAction = { viewModel.getItems() },
         updateErrorMessage = viewModel::updateErrorMessage
     )
-
 }
 
+/**
+ * this composable displays screen with items or screen with error
+ */
 @Composable
 fun ItemsWithContent(
     uiState: ItemUiState,
@@ -77,13 +81,13 @@ fun ItemsWithContent(
                         )
                     }
                     is ItemUiState.HasNoItems -> {
+                        // when there is no items and there is an error, show the ErrorScreen
                         if(uiState.errorMessage.isNotEmpty()) {
                             ErrorScreen(
                                 errorMessage = uiState.errorMessage,
                                 retryAction = retryAction,
                                 topBar = { HomeTopBar() },
                                 updateErrorMessage = updateErrorMessage
-
                             )
                         } else {
                             // if there is no error and there are no items, let the user refresh
@@ -104,6 +108,10 @@ fun ItemsWithContent(
     }
 }
 
+/**
+ * this composable is used to display an error or
+ * display the list of items
+ */
 @Composable
 fun DisplayItems(
     modifier: Modifier = Modifier,
@@ -130,7 +138,7 @@ fun DisplayItems(
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
-
+        // if screen has items and somehow there is an error, show the error on screen on pullRefresh
         if(uiState.errorMessage.isNotEmpty()) {
             ErrorScreen(
                 retryAction = retryAction,

@@ -1,12 +1,10 @@
 package com.example.listofitems.data
 
-import android.util.Log
 import com.example.listofitems.model.Item
 import com.example.listofitems.network.ItemApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
 
 
@@ -15,11 +13,13 @@ interface ItemsRepository {
     suspend fun getItems(): Result<List<Item>>
 }
 
-
-// network implementation of repository that fetch data from the api
+/**
+ * network implementation of repository that fetch data from the api
+ */
 class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRepository {
     override suspend fun getItems(): Result<List<Item>> {
-        // check if the response is successful
+        // withContext(Dispatchers.IO) is used to perform the network call off
+        // the main thread to avoid blocking the main thread which could freeze the UI
         return withContext(Dispatchers.IO) {
             try {
                 // response return a value create asynchronously from the apiService
@@ -28,15 +28,12 @@ class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRep
                 if(response.isSuccessful) {
                     Result.Success(response.body() ?: emptyList())
                 } else {
-                    Log.d("httpException", "errorGetItems: ${HttpException(response)}")
-                    // if not successful, return an error
+                    // if not successful, return a response error
                     Result.Error(HttpException(response))
                 }
             } catch(io : IOException) {
-                Log.d("ioException", "IoExceptionGetItems: $io")
-                Result.Error(io)
+                Result.Error(io) // returns network error
             } catch(exception: Exception) {
-                Log.d("exception", "exceptionGetItems: $exception")
                 Result.Error(exception)
             }
         }

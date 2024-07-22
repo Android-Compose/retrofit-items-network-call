@@ -1,6 +1,6 @@
 package com.example.listofitems.ui
 
-import android.util.Log
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -63,14 +63,11 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
             _uiState.update { uiState ->
                 when (result) {
                     is Result.Success -> {
-                        Log.d("Error In result.success ", " Error: ${uiState.errorMessage}")
-                        Log.d("data", "getItems: ${result.data}")
                         val items = filterItems(result.data)
                         uiState.copy(items = items, isLoading = false)
                     }
                     is Result.Error -> {
                         if( result.exception is IOException) {
-                            Log.d("Error in result.error", "Error: ${uiState.errorMessage}")
                             val error = "No internet connection, please try again"
                             uiState.copy(errorMessage = error, isLoading = false)
                         } else {
@@ -94,12 +91,6 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
             item.name != null && item.name != ""
         }.sortedBy { it.listId }
     }
-
-//    private fun filterItems(): List<Item> {
-//        return _uiState.value.items.filter { item ->
-//            item.name != null && item.name != ""
-//        }.sortedBy { it.listId }
-//    }
 
     // Factory for PostViewModel that takes repository as a dependency
     companion object {
@@ -131,7 +122,6 @@ data class HomeUiState(
                 errorMessage = errorMessage ?:""
             )
         }
-
 }
 
 
