@@ -6,5 +6,5 @@ import retrofit2.Response
 
 
 class FakeItemApiService : ItemApiService {
-    override suspend fun getItems(): Response<List<Item>> = Response.success(FakeDataSource.ItemList)
+    override suspend fun getItems(): Response<List<Item>> = Response.success(FakeDataSource.itemList)
 }

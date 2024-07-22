@@ -2,6 +2,7 @@ package com.example.listofitems
 
 
 
+
 import com.example.listofitems.data.NetWorkItemsRepository
 import com.example.listofitems.data.Result
 import com.example.listofitems.fake.FakeDataSource
@@ -21,6 +22,6 @@ class NetworkItemsRepositoryTest {
     @Test
     fun networkItemsRepository_GetItems_ReturnsSuccess() = runTest {
         val repository = NetWorkItemsRepository(apiService = FakeItemApiService())
-        assertEquals(Result.Success(FakeDataSource.ItemList), repository.getItems())
+        assertEquals(Result.Success(FakeDataSource.itemList), repository.getItems())
     }
 }
