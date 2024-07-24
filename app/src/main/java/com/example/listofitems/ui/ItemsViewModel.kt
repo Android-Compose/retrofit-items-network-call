@@ -1,6 +1,7 @@
 package com.example.listofitems.ui
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -24,20 +25,20 @@ import java.io.IOException
 sealed interface ItemUiState{
     var loading: Boolean
     val errorMessage: String
-    val isRetrying: Boolean
+    var isRetrying: Boolean
 
     data class HasItems(
         val items: List<Item>,
         override var loading: Boolean,
         override val errorMessage: String,
-        override val isRetrying: Boolean
+        override var isRetrying: Boolean
     ): ItemUiState
 
 
     data class HasNoItems(
         override var loading: Boolean,
         override val errorMessage: String,
-        override val isRetrying: Boolean
+        override var isRetrying: Boolean
     ): ItemUiState
 
 }
@@ -45,23 +46,26 @@ sealed interface ItemUiState{
 
 class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
-    private var _uiState = MutableStateFlow(HomeUiState())
+    private var _uiState = MutableStateFlow(HomeUiState(isLoading = true))
 
     val uiState: StateFlow<ItemUiState> = _uiState.map(HomeUiState::toItemUiState)
         .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = _uiState.value.toItemUiState()
-    )
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = _uiState.value.toItemUiState()
+        )
 
     init {
         getItems()
     }
 
     fun getItems() {
+        Log.d("loading in ViewModel", "loading: ${_uiState.value.isLoading}")
+        Log.d("isRetrying", "isRetrying: ${_uiState.value.isRetrying}")
 
-        _uiState.update { it.copy(isLoading = true) }
-        _uiState.update { it.copy(isRetry = false) }
+        if (_uiState.value.errorMessage?.isNotEmpty() == true) _uiState.update { it.copy(isRetrying = true) }
+        if (_uiState.value.isRetrying) _uiState.value.isLoading
+
 
         viewModelScope.launch {
             val result = repository.getItems()
@@ -90,10 +94,9 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
             it.copy(errorMessage = "")
         }
     }
-    fun updateLoading() {
-        _uiState.update {
-            it.copy(isLoading = false)
-        }
+
+    fun updateIsRetrying(message: String?) {
+        _uiState.update { it.copy(errorMessage = message ?: "") }
     }
 
     private fun filterItems(items: List<Item>): List<Item> {
@@ -116,7 +119,7 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
 data class HomeUiState(
     var isLoading: Boolean = false,
-    val isRetry: Boolean = false,
+    val isRetrying: Boolean = false,
     val items: List<Item> = emptyList(),
     val errorMessage: String? = null
 ) {
@@ -124,7 +127,7 @@ data class HomeUiState(
         if(items.isEmpty()) {
             ItemUiState.HasNoItems(
                 loading = isLoading,
-                isRetrying = isRetry,
+                isRetrying = isRetrying,
                 errorMessage = errorMessage ?: ""
             )
         } else {
@@ -132,7 +135,7 @@ data class HomeUiState(
                 items = items,
                 loading = isLoading,
                 errorMessage = errorMessage ?:"",
-                isRetrying = isRetry
+                isRetrying = isRetrying
             )
         }
 }

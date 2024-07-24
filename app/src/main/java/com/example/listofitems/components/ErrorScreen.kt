@@ -15,11 +15,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.listofitems.R
+import com.example.listofitems.ui.ItemUiState
 
 
 @Composable
 fun ErrorScreen(
     retryAction: () -> Unit,
+    updateIsRetrying: (String?) -> Unit,
     errorMessage: String,
     updateErrorMessage: () -> Unit,
     topBar: @Composable () -> Unit
