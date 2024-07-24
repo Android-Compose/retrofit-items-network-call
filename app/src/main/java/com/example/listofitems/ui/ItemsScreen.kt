@@ -1,6 +1,7 @@
 package com.example.listofitems.ui
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,7 +55,7 @@ fun ItemsWithContent(
     uiState: ItemUiState,
     onRefresh: () -> Unit,
     retryAction: () -> Unit,
-    updateErrorMessage: () -> Unit
+    updateErrorMessage: () -> Unit,
 ) {
     Scaffold(
         topBar = { HomeTopBar() },
@@ -71,6 +72,7 @@ fun ItemsWithContent(
             content = {
                 when(uiState) {
                     is ItemUiState.HasItems -> { // has items =  list of items
+                        Log.d("HasState", "hasState: $uiState")
                         DisplayItems(
                             modifier = Modifier.padding(innerPadding),
                             items = uiState.items,
@@ -81,6 +83,7 @@ fun ItemsWithContent(
                         )
                     }
                     is ItemUiState.HasNoItems -> {
+                        Log.d("hasNoState", "hasNoState: $uiState")
                         // when there is no items and there is an error, show the ErrorScreen
                         if(uiState.errorMessage.isNotEmpty()) {
                             ErrorScreen(
@@ -97,6 +100,7 @@ fun ItemsWithContent(
                             ) {
                                 Text(
                                     text = stringResource( R.string.tap_to_load_content),
+                                    style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center,
                                 )
                             }
@@ -119,7 +123,7 @@ fun DisplayItems(
     uiState: ItemUiState,
     items: List<Item>,
     updateErrorMessage: () -> Unit,
-    retryAction: () -> Unit,
+    retryAction: () -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -128,7 +132,7 @@ fun DisplayItems(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 32.dp, start = 32.dp, end = 32.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -136,19 +140,19 @@ fun DisplayItems(
             Text(text = "Name")
         }
         HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+            modifier = Modifier.padding(horizontal = 32.dp),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
         // if screen has items and somehow there is an error, show the error on screen on pullRefresh
         if(uiState.errorMessage.isNotEmpty()) {
             ErrorScreen(
                 retryAction = retryAction,
                 errorMessage = errorMessage,
-                topBar = { },
+                topBar = {},
                 updateErrorMessage = updateErrorMessage
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues( horizontal = 16.dp)
+                contentPadding = PaddingValues( horizontal = 32.dp)
             ) {
                 items(items) { item ->
                     Row( modifier = Modifier
@@ -165,3 +169,13 @@ fun DisplayItems(
         }
     }
 }
+
+// Log.d("isRetry", "isRetry: ${uiState.isRetry}")
+//                        Log.d("hasNoState ScreenLoading", "hasNoState ScreenLoading: $uiState")
+//                        if(!uiState.isRetry && uiState.errorMessage.isNotEmpty()){
+//                            Log.d("error message", "message: ${uiState.errorMessage}")
+//                            ScreenLoading()
+//                        }  else if(uiState.isRetry && uiState.errorMessage.isEmpty()) {
+//                            Log.d("error message", "message: ${uiState.errorMessage}")
+//                            ScreenLoading()
+//                        }

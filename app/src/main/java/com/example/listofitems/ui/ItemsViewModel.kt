@@ -22,18 +22,22 @@ import java.io.IOException
 
 // this interface  set the status of the data coming from the remote server
 sealed interface ItemUiState{
-    val loading: Boolean
+    var loading: Boolean
     val errorMessage: String
+    val isRetrying: Boolean
 
     data class HasItems(
         val items: List<Item>,
-        override val loading: Boolean,
-        override val errorMessage: String
+        override var loading: Boolean,
+        override val errorMessage: String,
+        override val isRetrying: Boolean
     ): ItemUiState
 
+
     data class HasNoItems(
-        override val loading: Boolean,
-        override val errorMessage: String
+        override var loading: Boolean,
+        override val errorMessage: String,
+        override val isRetrying: Boolean
     ): ItemUiState
 
 }
@@ -57,6 +61,7 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
     fun getItems() {
 
         _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isRetry = false) }
 
         viewModelScope.launch {
             val result = repository.getItems()
@@ -85,6 +90,11 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
             it.copy(errorMessage = "")
         }
     }
+    fun updateLoading() {
+        _uiState.update {
+            it.copy(isLoading = false)
+        }
+    }
 
     private fun filterItems(items: List<Item>): List<Item> {
         return items.filter { item ->
@@ -106,6 +116,7 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
 data class HomeUiState(
     var isLoading: Boolean = false,
+    val isRetry: Boolean = false,
     val items: List<Item> = emptyList(),
     val errorMessage: String? = null
 ) {
@@ -113,13 +124,15 @@ data class HomeUiState(
         if(items.isEmpty()) {
             ItemUiState.HasNoItems(
                 loading = isLoading,
+                isRetrying = isRetry,
                 errorMessage = errorMessage ?: ""
             )
         } else {
             ItemUiState.HasItems(
                 items = items,
                 loading = isLoading,
-                errorMessage = errorMessage ?:""
+                errorMessage = errorMessage ?:"",
+                isRetrying = isRetry
             )
         }
 }
