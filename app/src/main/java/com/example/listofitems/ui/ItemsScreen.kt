@@ -39,7 +39,8 @@ fun ItemsScreen() {
         onRefresh = { viewModel.getItems() },
         retryAction = { viewModel.getItems() },
         updateErrorMessage = viewModel::updateErrorMessage,
-        updateIsLoading = viewModel::updateIsLoading
+        updateIsLoading = viewModel::updateIsLoading,
+        updateItems = viewModel::updateItems
     )
 }
 
@@ -52,7 +53,8 @@ fun ItemsWithContent(
     onRefresh: () -> Unit,
     retryAction: () -> Unit,
     updateErrorMessage: () -> Unit,
-    updateIsLoading: (Boolean) -> Unit
+    updateIsLoading: (Boolean) -> Unit,
+    updateItems: (List<Item>) -> Unit
 ) {
     Scaffold(
         topBar = { HomeTopBar() },
@@ -69,28 +71,25 @@ fun ItemsWithContent(
             content = {
                 when(uiState) {
                     is ItemUiState.HasItems -> { // has items =  list of items
-                        Log.d("HasState", "hasState: $uiState")
-                        Log.d("error in HasItems", "error: ${uiState.errorMessage}")
-                        Log.d("Loading in HasItems", "Loading: ${uiState.loading}")
                         DisplayItems(
                             modifier = Modifier.padding(innerPadding),
                             items = uiState.items,
                             uiState = uiState,
                             retryAction = retryAction,
-                            errorMessage = uiState.errorMessage,
                             updateErrorMessage = updateErrorMessage,
-                            updateIsLoading = updateIsLoading
+                            updateIsLoading = updateIsLoading,
+                            updateItems = updateItems
                         )
                     }
                     is ItemUiState.HasNoItems -> {
                        // when there is no items and there is an error, show the ErrorScreen
                         if(uiState.errorMessage.isNotEmpty()) {
                             ErrorScreen(
-                                errorMessage = uiState.errorMessage,
+                                uiState = uiState,
                                 retryAction = retryAction,
                                 topBar = { HomeTopBar() },
                                 updateErrorMessage = updateErrorMessage,
-                                updateIsLoading = updateIsLoading
+                                updateIsLoading = { updateIsLoading(false) }
                             )
                         } else {
                             updateIsLoading(true)
@@ -109,12 +108,12 @@ fun ItemsWithContent(
 @Composable
 fun DisplayItems(
     modifier: Modifier = Modifier,
-    errorMessage: String,
     uiState: ItemUiState,
     items: List<Item>,
     updateErrorMessage: () -> Unit,
     retryAction: () -> Unit,
-    updateIsLoading: (Boolean) -> Unit
+    updateIsLoading: (Boolean) -> Unit,
+    updateItems: (List<Item>) -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -133,15 +132,18 @@ fun DisplayItems(
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 24.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-        // after the screen has items and somehow there is no internet connection
-        // and the user pull to refresh the screen. show the error on screen
+        // when the screen has items and somehow there is no internet connection
+        // and the user pull to refresh the screen, show error
         if(uiState.errorMessage.isNotEmpty()) {
             ErrorScreen(
+                uiState = uiState,
                 retryAction = retryAction,
-                errorMessage = errorMessage,
                 topBar = {},
                 updateErrorMessage = updateErrorMessage,
-                updateIsLoading = updateIsLoading
+                updateIsLoading = {
+                    updateIsLoading(false)
+                    updateItems(emptyList())
+                }
             )
         } else {
             LazyColumn(

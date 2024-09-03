@@ -1,7 +1,6 @@
 package com.example.listofitems.ui
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -56,8 +55,7 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
     }
 
     fun getItems() {
-
-        _uiState.update { it.copy(isLoading = true)} // initial loading to true
+        _uiState.update { it.copy(isLoading = true)} // initializing loading to true
 
         viewModelScope.launch {
             val result = repository.getItems()
@@ -69,7 +67,7 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
                     }
                     is Result.Error -> {
                         if( result.exception is IOException) {
-                            val error = "No internet connection, please try again"
+                            val error = "No internet connection\nPlease Check your internet connection"
                             uiState.copy(errorMessage = error, isLoading = false)
                         } else {
                             val error = "Failed to load data"
@@ -88,8 +86,11 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
     }
 
     fun updateIsLoading( isLoading: Boolean) {
-        Log.d("isLoading in vm", "isLoading: $isLoading")
         _uiState.update { it.copy(isLoading = isLoading) }
+    }
+
+    fun updateItems(items: List<Item>) {
+        _uiState.update { it.copy(items = items) }
     }
 
     private fun filterItems(items: List<Item>): List<Item> {
@@ -119,7 +120,7 @@ data class HomeUiState(
         if(items.isEmpty()) {
             ItemUiState.HasNoItems(
                 loading = isLoading,
-                errorMessage = errorMessage ?: ""
+                errorMessage = errorMessage ?: "No data found"
             )
         } else {
             ItemUiState.HasItems(
