@@ -25,28 +25,24 @@ import java.io.IOException
 sealed interface ItemUiState{
     var loading: Boolean
     val errorMessage: String
-    var isRetrying: Boolean
 
     data class HasItems(
         val items: List<Item>,
         override var loading: Boolean,
         override val errorMessage: String,
-        override var isRetrying: Boolean
     ): ItemUiState
 
 
     data class HasNoItems(
         override var loading: Boolean,
         override val errorMessage: String,
-        override var isRetrying: Boolean
     ): ItemUiState
-
 }
 
 
 class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
-    private var _uiState = MutableStateFlow(HomeUiState(isLoading = true))
+    private var _uiState = MutableStateFlow(HomeUiState())
 
     val uiState: StateFlow<ItemUiState> = _uiState.map(HomeUiState::toItemUiState)
         .stateIn(
@@ -60,12 +56,8 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
     }
 
     fun getItems() {
-        Log.d("loading in ViewModel", "loading: ${_uiState.value.isLoading}")
-        Log.d("isRetrying", "isRetrying: ${_uiState.value.isRetrying}")
 
-        if (_uiState.value.errorMessage?.isNotEmpty() == true) _uiState.update { it.copy(isRetrying = true) }
-        if (_uiState.value.isRetrying) _uiState.value.isLoading
-
+        _uiState.update { it.copy(isLoading = true)} // initial loading to true
 
         viewModelScope.launch {
             val result = repository.getItems()
@@ -95,8 +87,9 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
         }
     }
 
-    fun updateIsRetrying(message: String?) {
-        _uiState.update { it.copy(errorMessage = message ?: "") }
+    fun updateIsLoading( isLoading: Boolean) {
+        Log.d("isLoading in vm", "isLoading: $isLoading")
+        _uiState.update { it.copy(isLoading = isLoading) }
     }
 
     private fun filterItems(items: List<Item>): List<Item> {
@@ -119,7 +112,6 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
 
 data class HomeUiState(
     var isLoading: Boolean = false,
-    val isRetrying: Boolean = false,
     val items: List<Item> = emptyList(),
     val errorMessage: String? = null
 ) {
@@ -127,18 +119,13 @@ data class HomeUiState(
         if(items.isEmpty()) {
             ItemUiState.HasNoItems(
                 loading = isLoading,
-                isRetrying = isRetrying,
                 errorMessage = errorMessage ?: ""
             )
         } else {
             ItemUiState.HasItems(
                 items = items,
                 loading = isLoading,
-                errorMessage = errorMessage ?:"",
-                isRetrying = isRetrying
+                errorMessage = errorMessage ?:""
             )
         }
 }
-
-
-

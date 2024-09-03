@@ -19,11 +19,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.listofitems.R
 import com.example.listofitems.components.ErrorScreen
 import com.example.listofitems.components.HomeTopBar
 import com.example.listofitems.components.ScreenLoading
@@ -42,7 +39,7 @@ fun ItemsScreen() {
         onRefresh = { viewModel.getItems() },
         retryAction = { viewModel.getItems() },
         updateErrorMessage = viewModel::updateErrorMessage,
-        updateIsRetrying = viewModel::updateIsRetrying
+        updateIsLoading = viewModel::updateIsLoading
     )
 }
 
@@ -55,7 +52,7 @@ fun ItemsWithContent(
     onRefresh: () -> Unit,
     retryAction: () -> Unit,
     updateErrorMessage: () -> Unit,
-    updateIsRetrying: (String?) -> Unit
+    updateIsLoading: (Boolean) -> Unit
 ) {
     Scaffold(
         topBar = { HomeTopBar() },
@@ -64,9 +61,7 @@ fun ItemsWithContent(
 
         LoadingContent(
             isEmpty = when(uiState) {
-                is ItemUiState.HasNoItems -> {
-                    Log.d("LOADING", "LOADING: ${uiState.loading}")
-                    uiState.loading }
+                is ItemUiState.HasNoItems -> { uiState.loading }
                 is ItemUiState.HasItems -> { false }
             },
             onRefresh = onRefresh,
@@ -75,6 +70,8 @@ fun ItemsWithContent(
                 when(uiState) {
                     is ItemUiState.HasItems -> { // has items =  list of items
                         Log.d("HasState", "hasState: $uiState")
+                        Log.d("error in HasItems", "error: ${uiState.errorMessage}")
+                        Log.d("Loading in HasItems", "Loading: ${uiState.loading}")
                         DisplayItems(
                             modifier = Modifier.padding(innerPadding),
                             items = uiState.items,
@@ -82,36 +79,22 @@ fun ItemsWithContent(
                             retryAction = retryAction,
                             errorMessage = uiState.errorMessage,
                             updateErrorMessage = updateErrorMessage,
-                            updateIsRetrying = updateIsRetrying
+                            updateIsLoading = updateIsLoading
                         )
                     }
                     is ItemUiState.HasNoItems -> {
-                        Log.d("hasNoState", "hasNoState: $uiState")
-                        Log.d("isRetry", "retry in hasNoState: ${uiState.isRetrying}")
-
-                        // when there is no items and there is an error, show the ErrorScreen
+                       // when there is no items and there is an error, show the ErrorScreen
                         if(uiState.errorMessage.isNotEmpty()) {
                             ErrorScreen(
                                 errorMessage = uiState.errorMessage,
                                 retryAction = retryAction,
                                 topBar = { HomeTopBar() },
                                 updateErrorMessage = updateErrorMessage,
-                                updateIsRetrying = updateIsRetrying
+                                updateIsLoading = updateIsLoading
                             )
+                        } else {
+                            updateIsLoading(true)
                         }
-//                        } else {
-//                            // if there is no error and there are no items, let the user refresh
-//                            TextButton(
-//                                onClick = onRefresh,
-//                                modifier = Modifier.fillMaxSize()
-//                            ) {
-//                                Text(
-//                                    text = stringResource( R.string.tap_to_load_content),
-//                                    style = MaterialTheme.typography.bodyMedium,
-//                                    textAlign = TextAlign.Center,
-//                                )
-//                            }
-//                        }
                     }
                 }
             }
@@ -131,7 +114,7 @@ fun DisplayItems(
     items: List<Item>,
     updateErrorMessage: () -> Unit,
     retryAction: () -> Unit,
-    updateIsRetrying: (String?) -> Unit
+    updateIsLoading: (Boolean) -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -150,14 +133,15 @@ fun DisplayItems(
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 24.dp),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-        // if screen has items and somehow there is an error, show the error on screen on pullRefresh
+        // after the screen has items and somehow there is no internet connection
+        // and the user pull to refresh the screen. show the error on screen
         if(uiState.errorMessage.isNotEmpty()) {
             ErrorScreen(
                 retryAction = retryAction,
-                updateIsRetrying = updateIsRetrying,
                 errorMessage = errorMessage,
                 topBar = {},
                 updateErrorMessage = updateErrorMessage,
+                updateIsLoading = updateIsLoading
             )
         } else {
             LazyColumn(

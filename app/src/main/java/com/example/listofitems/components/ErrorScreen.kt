@@ -1,5 +1,6 @@
 package com.example.listofitems.components
 
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,17 +16,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.listofitems.R
-import com.example.listofitems.ui.ItemUiState
-
 
 @Composable
 fun ErrorScreen(
     retryAction: () -> Unit,
-    updateIsRetrying: (String?) -> Unit,
     errorMessage: String,
     updateErrorMessage: () -> Unit,
-    topBar: @Composable () -> Unit
+    topBar: @Composable () -> Unit,
+    updateIsLoading: (Boolean) -> Unit,
 ) {
+    // try ItemUiState here
     Scaffold(
         topBar = topBar ,
         content = { innerPadding ->
@@ -42,6 +42,7 @@ fun ErrorScreen(
                 Button(onClick =  {
                     retryAction()
                     updateErrorMessage()
+                    updateIsLoading(false)
                 }) {
                     Text(stringResource(id = R.string.retry))
                 }
