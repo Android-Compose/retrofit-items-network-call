@@ -1,4 +1,4 @@
-# fab-fetch-exercise
+# Using Retrofit to make network call to retrieve Items
 Display a list of items to users in a easy to read list:
 ----------------------------------------------------------
 * Display all the items grouped by "listId"
