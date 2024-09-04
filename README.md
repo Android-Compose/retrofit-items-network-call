@@ -11,3 +11,4 @@ Tools used
 * Retrofit
 * MVVM
 * UDF
+* JetPack Compose
