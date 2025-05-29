@@ -78,11 +78,9 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
             }
         }
     }
-
+    
     fun updateErrorMessage() {
-        _uiState.update {
-            it.copy(errorMessage = "")
-        }
+        _uiState.update { it.copy(errorMessage = "") }
     }
 
     fun updateIsLoading( isLoading: Boolean) {
