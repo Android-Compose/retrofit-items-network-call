@@ -1,7 +1,8 @@
 package com.example.listofitems.ui
 
 
-import androidx.lifecycle.ViewModel
+import android.net.http.HttpException
+import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -12,7 +13,7 @@ import com.example.listofitems.model.Item
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import com.example.listofitems.utils.ContentManagerViewModel
 import com.example.listofitems.data.Result
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -39,7 +40,7 @@ sealed interface ItemUiState{
 }
 
 
-class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
+class ItemsViewModel(private val repository: ItemsRepository): ContentManagerViewModel() {
 
     private var _uiState = MutableStateFlow(HomeUiState())
 
@@ -57,28 +58,37 @@ class ItemsViewModel(private val repository: ItemsRepository) : ViewModel() {
     fun getItems() {
         _uiState.update { it.copy(isLoading = true)} // initializing loading to true
 
-        viewModelScope.launch {
-            val result = repository.getItems()
-            _uiState.update { uiState ->
-                when (result) {
-                    is Result.Success -> {
-                        val items = filterItems(result.data)
-                        uiState.copy(items = items, isLoading = false)
-                    }
-                    is Result.Error -> {
-                        if( result.exception is IOException) {
-                            val error = "No internet connection\nPlease Check your internet connection"
-                            uiState.copy(errorMessage = error, isLoading = false)
-                        } else {
-                            val error = "Failed to load data"
-                            uiState.copy(errorMessage = error, isLoading = false)
+        launchCatching(
+            block = {
+                val response = repository.getItems() // return Result<List<Items>>
+                _uiState.update { currentState ->
+                    when(response) {
+                        is Result.Success -> { // Result.Success from the repository
+                            val data = filterItems(response.data)
+                            currentState.copy(
+                                items =  data,
+                                isLoading = false
+                            )
+                        }
+                        is Result.Error -> { // Result.Error from the repository
+                            val errorType = when(response.exception) {
+                                is IOException -> "No internet connection\nPlease Check your internet connection"
+                                is retrofit2.HttpException -> "Oops, we encountered a problem while processing your request. Please try again"
+                                else -> "Failed to load data"
+                            }
+                            Log.d("Error from ItemsViewModel", "${response.exception.message}")
+                            currentState.copy(errorMessage = errorType, isLoading = false)
                         }
                     }
                 }
+            },
+            onError = { throwable ->
+                // this catches unexpected error
+                Log.d("serious error occurred in ItemsViewModel", "Unexpected error in launchCatching", throwable)
             }
-        }
+        )
     }
-    
+
     fun updateErrorMessage() {
         _uiState.update { it.copy(errorMessage = "") }
     }
@@ -124,7 +134,7 @@ data class HomeUiState(
             ItemUiState.HasItems(
                 items = items,
                 loading = isLoading,
-                errorMessage = errorMessage ?:""
+                errorMessage = "" // no error message on Success
             )
         }
 }

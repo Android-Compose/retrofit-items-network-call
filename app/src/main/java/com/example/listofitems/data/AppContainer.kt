@@ -26,7 +26,7 @@ class DefaultAppContainer : AppContainer {
         retrofit.create(ItemApiService::class.java)
 
     }
-    // Data injection for home Repository
+    // Data injection for item Repository
     override val repository: ItemsRepository
         get() = NetWorkItemsRepository(retrofitService)
 }

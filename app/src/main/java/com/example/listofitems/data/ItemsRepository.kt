@@ -7,29 +7,47 @@ import java.io.IOException
 
 
 interface ItemsRepository {
-    // this function will be used to fetch the data
-    suspend fun getItems(): Result<List<Item>>
+    suspend fun getItems(): Result<List<Item>> // this function will fetch the data
 }
 
 /**
  * network implementation of repository that fetch data from the api
  */
-
 class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRepository {
     override suspend fun getItems(): Result<List<Item>> {
-        // Make network request using a blocking call from suspend function from retrofit
+        // Make network request using a blocking call of the suspend function from retrofit
         return try {
-            // response return a value create asynchronously from the apiService
+            // response returns data create asynchronously from the apiService
             val response = apiService.getItems()
-            // if successful, return the body
-            if(response.isSuccessful) {
-                Result.Success(response.body() ?: emptyList())
+            if (response.isSuccessful) {
+                Result.Success(response.body() ?: emptyList()) //return the data
             } else {
-                // if not successful, return a response error
-                Result.Error(HttpException(response))
+                Result.Error(HttpException(response)) //return error
             }
-        } catch(io : IOException) {
-            Result.Error(io) // returns network error
+
+        } catch (io: IOException){
+            Result.Error(io) // network connectivity error
+        } catch (e: Exception){
+            Result.Error(e) // returns generic error
         }
     }
 }
+
+//class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRepository {
+//    override suspend fun getItems(): Result<List<Item>> {
+//        // Make network request using a blocking call from suspend function from retrofit
+//        return try {
+//            // response return a value create asynchronously from the apiService
+//            val response = apiService.getItems()
+//            // if successful, return the body
+//            if(response.isSuccessful) {
+//                Result.Success(response.body() ?: emptyList())
+//            } else {
+//                // if not successful, return a response error
+//                Result.Error(HttpException(response))
+//            }
+//        } catch(io : IOException) {
+//            Result.Error(io) // returns network error
+//        }
+//    }
+//}
