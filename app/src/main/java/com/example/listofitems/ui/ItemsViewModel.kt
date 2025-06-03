@@ -1,7 +1,6 @@
 package com.example.listofitems.ui
 
 
-import android.net.http.HttpException
 import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -63,6 +62,7 @@ class ItemsViewModel(private val repository: ItemsRepository): ContentManagerVie
         launchCatching(
             block = {
                 val response = repository.getItems() // return Result<List<Items>>
+                Log.d("fetched","$response")
                 _uiState.update { currentState ->
                     when(response) {
                         is Result.Success -> { // Result.Success from the repository
