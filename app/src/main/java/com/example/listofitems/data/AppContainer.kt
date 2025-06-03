@@ -1,6 +1,6 @@
 package com.example.listofitems.data
 
-import com.example.listofitems.BASE_URL
+import com.example.listofitems.utils.BASE_URL
 import com.example.listofitems.network.ItemApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

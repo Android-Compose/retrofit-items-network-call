@@ -1,4 +1,4 @@
-package com.example.listofitems
+package com.example.listofitems.utils
 
 //const val BASE_URL ="https://fetch-hiring.s3.amazonaws.com/"
 
