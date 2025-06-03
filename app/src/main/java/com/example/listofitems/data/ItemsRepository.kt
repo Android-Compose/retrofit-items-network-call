@@ -24,7 +24,6 @@ class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRep
             } else {
                 Result.Error(HttpException(response)) //return error
             }
-
         } catch (io: IOException){
             Result.Error(io) // network connectivity error
         } catch (e: Exception){
@@ -32,22 +31,3 @@ class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRep
         }
     }
 }
-
-//class NetWorkItemsRepository(private val apiService : ItemApiService) : ItemsRepository {
-//    override suspend fun getItems(): Result<List<Item>> {
-//        // Make network request using a blocking call from suspend function from retrofit
-//        return try {
-//            // response return a value create asynchronously from the apiService
-//            val response = apiService.getItems()
-//            // if successful, return the body
-//            if(response.isSuccessful) {
-//                Result.Success(response.body() ?: emptyList())
-//            } else {
-//                // if not successful, return a response error
-//                Result.Error(HttpException(response))
-//            }
-//        } catch(io : IOException) {
-//            Result.Error(io) // returns network error
-//        }
-//    }
-//}

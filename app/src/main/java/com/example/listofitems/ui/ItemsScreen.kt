@@ -2,14 +2,23 @@ package com.example.listofitems.ui
 
 
 import android.util.Log
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,6 +28,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.listofitems.components.ErrorScreen
@@ -54,7 +66,7 @@ fun ItemsWithContent(
     retryAction: () -> Unit,
     updateErrorMessage: () -> Unit,
     updateIsLoading: (Boolean) -> Unit,
-    updateItems: (List<Item>) -> Unit
+    updateItems: (Map<Int, List<Item>>) -> Unit
 ) {
     Scaffold(
         topBar = { HomeTopBar() },
@@ -71,9 +83,9 @@ fun ItemsWithContent(
             content = {
                 when(uiState) {
                     is ItemUiState.HasItems -> { // has items =  list of items
-                        DisplayItems(
+                        ComposeContent(
                             modifier = Modifier.padding(innerPadding),
-                            items = uiState.items,
+                            sortedItems = uiState.items,
                             uiState = uiState,
                             retryAction = retryAction,
                             updateErrorMessage = updateErrorMessage,
@@ -106,58 +118,86 @@ fun ItemsWithContent(
  * display the list of items
  */
 @Composable
-fun DisplayItems(
+fun ComposeContent(
     modifier: Modifier = Modifier,
     uiState: ItemUiState,
-    items: List<Item>,
+    sortedItems: Map<Int, List<Item>>,
     updateErrorMessage: () -> Unit,
     retryAction: () -> Unit,
     updateIsLoading: (Boolean) -> Unit,
-    updateItems: (List<Item>) -> Unit
+    updateItems: (Map<Int, List<Item>>) -> Unit
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
+    // if there is an error display it
+    if (uiState.errorMessage.isNotEmpty()) {
+        ErrorScreen(
+            uiState = uiState,
+            retryAction = retryAction,
+            topBar = {},
+            updateErrorMessage = updateErrorMessage,
+            updateIsLoading = {
+                updateIsLoading(false)
+                updateItems(mapOf())
+            }
+        )
+        return
+    }
+
+    if (sortedItems.isEmpty()) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp, start = 24.dp, end = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "ListId")
-            Text(text = "Name")
+            Text(text = "No data to show")
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-        // when the screen has items and somehow there is no internet connection
-        // and the user pull to refresh the screen, show error
-        if(uiState.errorMessage.isNotEmpty()) {
-            ErrorScreen(
-                uiState = uiState,
-                retryAction = retryAction,
-                topBar = {},
-                updateErrorMessage = updateErrorMessage,
-                updateIsLoading = {
-                    updateIsLoading(false)
-                    updateItems(emptyList())
-                }
-            )
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues( horizontal = 24.dp)
+        return
+    }
+
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+        Spacer(modifier = Modifier.height(104.dp))
+        sortedItems.forEach { (listId, names) ->
+            Card(
+                modifier = Modifier.padding(16.dp),
+                elevation = CardDefaults.cardElevation(5.dp)
             ) {
-                items(items) { item ->
-                    Row( modifier = Modifier
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(item.listId )
-                        Text(item.name ?: "no name")
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "List Id: $listId",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold)
+
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    // display the names
+                    names.chunked(4).forEach { row ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    start = 16.dp,
+                                    end=16.dp
+                                )
+                        ) {
+                            row.forEach {
+                                Text(text = it.name ?: "no name")
+                            }
+                        }
                     }
                 }
             }

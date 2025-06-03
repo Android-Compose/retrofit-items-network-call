@@ -1,8 +1,10 @@
 package com.example.listofitems
 
 
+import android.util.Log
 import com.example.listofitems.fake.FakeDataSource
 import com.example.listofitems.fake.FakeNetworkItemsRepository
+import com.example.listofitems.model.Item
 import com.example.listofitems.rules.TestDispatcherRule
 import com.example.listofitems.ui.ItemUiState
 import com.example.listofitems.ui.ItemsViewModel
@@ -25,20 +27,12 @@ class ItemsViewModelUiStateTest {
 
             val uiState = viewModel.uiState.value
             check(uiState is ItemUiState.HasItems)
-
-            assertEquals(FakeDataSource.itemList, uiState.items)
+            val listOfItems: MutableList<Item> = mutableListOf()
+            for( entry in  uiState.items) {
+               entry.value.forEach{ listOfItems.add(it) }
+            }
+            assertEquals(FakeDataSource.itemList, listOfItems)
             assertFalse(uiState.loading)
             assertEquals("", uiState.errorMessage)
         }
-
-//    @Test
-//    fun itemsViewModel_handling_error() =
-//        runTest {
-//            val viewModel = ItemsViewModel(repository = FakeNetworkItemsRepository())
-//
-//            val uiState = viewModel.uiState.value
-////            val exception = Exception("Failed to load data")
-//            assertTrue(uiState.errorMessage.isNotEmpty())
-////            assertEquals("Failed to load data", uiState.errorMessage) // Check error message
-//        }
 }

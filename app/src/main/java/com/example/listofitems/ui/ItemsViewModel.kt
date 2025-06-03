@@ -15,10 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import com.example.listofitems.utils.ContentManagerViewModel
 import com.example.listofitems.data.Result
+import com.example.listofitems.utils.processSortedItems
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.io.IOException
+
 
 
 // this interface  set the status of the data coming from the remote server
@@ -27,7 +29,7 @@ sealed interface ItemUiState{
     val errorMessage: String
 
     data class HasItems(
-        val items: List<Item>,
+        val items:  Map<Int, List<Item>>,
         override var loading: Boolean,
         override val errorMessage: String,
     ): ItemUiState
@@ -64,9 +66,8 @@ class ItemsViewModel(private val repository: ItemsRepository): ContentManagerVie
                 _uiState.update { currentState ->
                     when(response) {
                         is Result.Success -> { // Result.Success from the repository
-                            val data = filterItems(response.data)
                             currentState.copy(
-                                items =  data,
+                                items = response.data.processSortedItems(),
                                 isLoading = false
                             )
                         }
@@ -97,14 +98,8 @@ class ItemsViewModel(private val repository: ItemsRepository): ContentManagerVie
         _uiState.update { it.copy(isLoading = isLoading) }
     }
 
-    fun updateItems(items: List<Item>) {
+    fun updateItems(items: Map<Int, List<Item>>) {
         _uiState.update { it.copy(items = items) }
-    }
-
-    private fun filterItems(items: List<Item>): List<Item> {
-        return items.filter { item ->
-            item.name != null && item.name != ""
-        }.sortedBy { it.listId }
     }
 
     // Factory for PostViewModel that takes repository as a dependency
@@ -121,7 +116,7 @@ class ItemsViewModel(private val repository: ItemsRepository): ContentManagerVie
 
 data class HomeUiState(
     var isLoading: Boolean = false,
-    val items: List<Item> = emptyList(),
+    val items:  Map<Int, List<Item>> = mapOf(),
     val errorMessage: String? = null
 ) {
     fun toItemUiState() : ItemUiState =
