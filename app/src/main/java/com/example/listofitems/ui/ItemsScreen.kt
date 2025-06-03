@@ -137,7 +137,7 @@ fun ComposeContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "No data to show")
+            Text(text = "No data available")
         }
         return
     }
